@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+    {% block body %}
+    <h1 class="header">Speeder(Beta)</h1>
+
+    <form method="POST" action="/" enctype="multipart/form-data">
+
+        <input type="file" name="file" class="fileUpload">
+        <input class="button" type="submit" value="Yükle">
+
+    
+    </form>
+
+   
+    {% endblock %}
