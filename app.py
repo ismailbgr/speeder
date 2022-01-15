@@ -21,6 +21,13 @@ def index():
 
         file.seek(0)
 
+        #if there is no directory called videos, create one
+        if not os.path.exists("videos"):
+            os.makedirs("videos")
+        #if there is no directory called finished, create one
+        if not os.path.exists("finished"):
+            os.makedirs("finished")
+
         file.save("videos/"+str(sha.hexdigest())+'.mp4')
 
         # copy file to finished directory
