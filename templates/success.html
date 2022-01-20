@@ -3,6 +3,12 @@
 <h1>Dosya Yükleme Başarılı</h1>
 <h2>Lütfen İşlenmesini Bekleyiniz</h2>
 <h2>Dosya adı: {{ random_number }}</h2>
+<!-- <h3>Bu Kısaltma Size {{ eta }} Saniye Kazandıracak</h3> -->
+
+<!-- <div class="w3-border">
+    <div id="pbar" class="w3-blue" style="height:24px;width:20%"></div>
+  </div> -->
+
 <script>
     console.log("{{ random_number }}");
     //make a request to the server every 10 seconds to check if the file is processed
@@ -21,6 +27,16 @@
             }
         });
     }, 10000);
+
+    // var prog = setInterval(function(){
+    //     $.ajax({
+    //         url: "/prog/{{ random_number }}",
+    //         type: "GET",
+    //         success: function(data){
+    //             document.getElementById("pbar").style.width = data + "%";
+    //         }
+    //     });
+    // }, 10000);
 
 </script>
 {% endblock %}

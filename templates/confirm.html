@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Bu Kısaltma Size {{ sec }} saniye Kazandıracak</h1>
+<h2>Kredinizi Harcamak İstediğinizden Emin Misiniz?</h2>
+<button onclick="render()">Evet</button>
+
+<script>
+
+function render(){
+    window.location = "/render_video/{{ renderid }}";
+}
+
+</script>
+{% endblock %}

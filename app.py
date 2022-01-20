@@ -1,3 +1,4 @@
+from math import ceil
 import os
 import hashlib
 import random
@@ -8,7 +9,6 @@ from yt_dlp import YoutubeDL
 
 app = Flask(__name__)
 
-
 @app.route('/', methods=['POST', 'GET'])
 def index():
     if request.method == 'POST':
@@ -16,8 +16,7 @@ def index():
         # take sha of file
         sha = hashlib.sha256()
         sha.update(file.read())
-
-        print(sha.hexdigest())
+        print("uploaded file sha: " + sha.hexdigest())
 
         file.seek(0)
 
@@ -34,21 +33,32 @@ def index():
 
         # os.system("cp videos/"+str(sha.hexdigest())+".mp4 finished/")
 
-        threading.Thread(target=render, args=(sha,)).start()
+        # render video
+        # print("Rendering video")
+        # print(sha.hexdigest())
+        u = Unsilence("videos/"+str(sha.hexdigest())+".mp4")
+        u.detect_silence(short_interval_threshold=0.05,stretch_time=0.01,on_silence_detect_progress_update=printer)  
 
-        return render_template('success.html', random_number=sha.hexdigest())
+        # threading.Thread(target=render, args=(sha,)).start()
+
+        print(u.estimate_time(audible_speed=1, silent_speed=99))
+
+        return render_template('confirm.html', renderid=sha.hexdigest() , sec=ceil(abs(u.estimate_time(audible_speed=1, silent_speed=99)["delta"]["silent"][0])))
     else:
         return render_template('index.html')
 
+def printer(current, total):
+    print("Progress: " + str(current) + "/" + str(total))
 
 def render(sha):
-    # render video
     print("Rendering video")
-    print(sha.hexdigest())
-    u = Unsilence("videos/"+str(sha.hexdigest())+".mp4")
-    u.detect_silence()
-    u.render_media("finished/"+str(sha.hexdigest()) +
-                   ".mp4", audible_speed=1, silent_speed=9)
+    print(sha)
+    u = Unsilence("videos/"+str(sha)+".mp4")
+    u.detect_silence(short_interval_threshold=0.05,stretch_time=0.01,on_silence_detect_progress_update=printer) 
+    print("Detected silence") 
+    u.render_media("finished/"+str(sha) +
+                   ".mp4", audible_speed=1, silent_speed=99,on_render_progress_update=printer,on_concat_progress_update=printer)
+    print("Rendered video")
 
 
 @app.route('/check/<id>', methods=['GET'])
@@ -90,6 +100,19 @@ def ytdl(id):
 
 
     return render_template('success.html', random_number=sha.hexdigest())
+
+@app.route('/render_video/<vid_id>', methods=['GET'])
+def render_video(vid_id):
+    
+        #check if vid_id.mp4 exists in videos directory
+        if not os.path.isfile("videos/"+vid_id+".mp4"):
+            return "Hatalı Video ID: " + vid_id
+        
+        threading.Thread(target=render, args=(vid_id,)).start()
+
+        # print(u.estimate_time(audible_speed=1, silent_speed=99))
+
+        return render_template('success.html', random_number=vid_id)
 
 
 if __name__ == '__main__':
