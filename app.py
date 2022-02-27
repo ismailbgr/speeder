@@ -7,6 +7,13 @@ from flask import Flask, render_template, url_for, request, send_file
 import threading
 from yt_dlp import YoutubeDL
 
+finishedDir = "finished/"
+videosDir = "videos/"
+PAGE_SUCCESS = "success.html"
+PAGE_CONFIRM = "confirm.html"
+
+currentlyworking = []
+
 app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
@@ -20,6 +27,10 @@ def index():
 
         file.seek(0)
 
+        if not os.path.exists(finishedDir + sha.hexdigest() + ".mp4"):
+            print("File Exists")
+            return render_template(PAGE_SUCCESS, random_number=sha.hexdigest())
+
         #if there is no directory called videos, create one
         if not os.path.exists("videos"):
             os.makedirs("videos")
@@ -27,23 +38,16 @@ def index():
         if not os.path.exists("finished"):
             os.makedirs("finished")
 
-        file.save("videos/"+str(sha.hexdigest())+'.mp4')
+        file.save(videosDir+str(sha.hexdigest())+'.mp4')
 
-        # copy file to finished directory
+        # u = Unsilence(videosDir+str(sha.hexdigest())+".mp4")
+        # u.detect_silence(short_interval_threshold=0.05,stretch_time=0.01,on_silence_detect_progress_update=printer)  
 
-        # os.system("cp videos/"+str(sha.hexdigest())+".mp4 finished/")
 
-        # render video
-        # print("Rendering video")
-        # print(sha.hexdigest())
-        u = Unsilence("videos/"+str(sha.hexdigest())+".mp4")
-        u.detect_silence(short_interval_threshold=0.05,stretch_time=0.01,on_silence_detect_progress_update=printer)  
+        # print(u.estimate_time(audible_speed=1, silent_speed=99))
 
-        # threading.Thread(target=render, args=(sha,)).start()
-
-        print(u.estimate_time(audible_speed=1, silent_speed=99))
-
-        return render_template('confirm.html', renderid=sha.hexdigest() , sec=ceil(abs(u.estimate_time(audible_speed=1, silent_speed=99)["delta"]["silent"][0])))
+        # return render_template('confirm.html', renderid=sha.hexdigest() , sec=ceil(abs(u.estimate_time(audible_speed=1, silent_speed=99)["delta"]["silent"][0])))
+        return render_template('confirm.html', renderid=sha.hexdigest())
     else:
         return render_template('index.html')
 
@@ -53,18 +57,23 @@ def printer(current, total):
 def render(sha):
     print("Rendering video")
     print(sha)
-    u = Unsilence("videos/"+str(sha)+".mp4")
+    u = Unsilence(videosDir+str(sha)+".mp4")
     u.detect_silence(short_interval_threshold=0.05,stretch_time=0.01,on_silence_detect_progress_update=printer) 
     print("Detected silence") 
-    u.render_media("finished/"+str(sha) +
+    u.render_media(finishedDir+str(sha) +
                    ".mp4", audible_speed=1, silent_speed=99,on_render_progress_update=printer,on_concat_progress_update=printer)
     print("Rendered video")
 
 
 @app.route('/check/<id>', methods=['GET'])
 def check(id):
+
+    if id not in currentlyworking:
+        return "-1";
+
+
     # check if file exists named request.form['check'].mp4
-    if os.path.isfile("finished/"+id+'.mp4'):
+    if os.path.isfile(finishedDir+id+'.mp4'):
         return "1"
     else:
         return "0"
@@ -75,7 +84,7 @@ def download(id):
     # download file named finished/id.mp4
     print("Downloading file")
     print(id)
-    return send_file("finished/"+id+".mp4", as_attachment=True)
+    return send_file(finishedDir+id+".mp4", as_attachment=True)
 
 
 @app.route('/ytdl/<id>', methods=['GET'])
@@ -103,9 +112,12 @@ def ytdl(id):
 
 @app.route('/render_video/<vid_id>', methods=['GET'])
 def render_video(vid_id):
+
+        #add to currently working list
+        currentlyworking.append(vid_id)
     
         #check if vid_id.mp4 exists in videos directory
-        if not os.path.isfile("videos/"+vid_id+".mp4"):
+        if not os.path.isfile(videosDir+vid_id+".mp4"):
             return "Hatalı Video ID: " + vid_id
         
         threading.Thread(target=render, args=(vid_id,)).start()
