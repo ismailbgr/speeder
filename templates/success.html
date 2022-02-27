@@ -23,6 +23,11 @@
                         window.location.href = "/download/{{ random_number }}";
                     }, 3000);
                     clearInterval(inter);
+                }else if(data == "-1"){
+
+                    document.write("<h1>HATA</h1><h2>Dosya İşlenirken Hata Oluştu</h2>");
+                    clearInterval(inter);
+                    
                 }
             }
         });
