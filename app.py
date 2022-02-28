@@ -68,15 +68,15 @@ def render(sha):
 @app.route('/check/<id>', methods=['GET'])
 def check(id):
 
-    if id not in currentlyworking:
-        return "-1";
-
 
     # check if file exists named request.form['check'].mp4
     if os.path.isfile(finishedDir+id+'.mp4'):
         return "1"
     else:
-        return "0"
+        if id not in currentlyworking:
+            return "-1"
+        else:
+            return "0"
 
 
 @app.route('/download/<id>', methods=['GET'])
