@@ -27,9 +27,9 @@ def index():
 
         file.seek(0)
 
-        if not os.path.exists(finishedDir + sha.hexdigest() + ".mp4"):
-            print("File Exists")
-            return render_template(PAGE_SUCCESS, random_number=sha.hexdigest())
+        # if not os.path.exists(finishedDir + sha.hexdigest() + ".mp4"):
+        #     print("File Exists")
+        #     return render_template(PAGE_SUCCESS, random_number=sha.hexdigest())
 
         #if there is no directory called videos, create one
         if not os.path.exists("videos"):
